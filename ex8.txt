@@ -1,0 +1,45 @@
+ex8
+sudo apt install bridge-utils
+sudo modprobe bridge
+sudo modprobe br_netfilter
+sudo ip link add br0 type bridge
+
+check:ip link
+
+sudo ip link set br0 up
+sudo ip link add veth1 type veth peer name veth2
+sudo ip link set veth1 up
+sudo ip link set veth2 up
+
+sudo brctl addif br0 veth1
+sudo brctl addif br0 veth2
+
+openv
+
+sudo -s
+ip netns add VRF1
+ip netns add VRF2
+ip netns list
+ip link add veth1 type veth peer name veth2
+ip link add veth3 type veth peer name veth4
+ip link set veth1 netns VRF1
+ip link set veth3 netns VRF2
+ip netns exec VRF1 ifconfig veth1 10.10.10.1/24 up
+ip netns exec VRF2 ifconfig veth3 10.10.10.2/24 up
+sudo apt install openvswitch-switch openvswitch-common -y
+ovs-vsctl --version
+sudo systemctl status openvswitch-switch
+sudo systemctl start openvswitch-switch
+
+ovs-vsctl add-br vSwitch1
+ovs-vsctl show
+
+ovs-vsctl add-port vSwitch1 veth2
+ovs-vsctl add-port vSwitch1 veth4
+
+ifconfig veth2 up
+ifconfig veth4 up
+
+ip netns exec VRF1 ping 10.10.10.2
+
+
